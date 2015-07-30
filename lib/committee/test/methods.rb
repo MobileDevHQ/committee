@@ -1,6 +1,6 @@
 module Committee::Test
   module Methods
-    def assert_schema_conform
+    def assert_schema_conform(request, last_response)
       if (data = schema_contents).is_a?(String)
         warn_string_deprecated
         data = MultiJson.decode(data)
@@ -13,14 +13,14 @@ module Committee::Test
       end
       @router ||= Committee::Router.new(@schema, prefix: schema_url_prefix)
 
-      unless link = @router.find_request_link(last_request)
-        response = "`#{last_request.request_method} #{last_request.path_info}` undefined in schema."
+      unless link = @router.find_request_link(request)
+        response = "`#{request.request_method} #{request.path_info}` undefined in schema."
         raise Committee::InvalidResponse.new(response)
       end
 
       if validate_response?(last_response.status)
         data = MultiJson.decode(last_response.body)
-        Committee::ResponseValidator.new(link).call(last_response.status, last_response.headers, data)
+        Committee::ResponseValidator.new(link).call(last_response.status, last_response.header, data)
       end
     end
 
