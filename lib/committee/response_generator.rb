@@ -14,8 +14,16 @@ module Committee
     def generate_properties(schema)
       data = {}
       schema.properties.each do |key, value|
+        if value.type.include?("array") && value.items
+          value.properties = value.items.properties
+        end
+
         data[key] = if !value.properties.empty?
-          generate_properties(value)
+          if value.type.include?("array")
+            [generate_properties(value)]
+          else
+            generate_properties(value)
+          end
         else
           # special example attribute was included; use its value
           if !value.data["example"].nil?
